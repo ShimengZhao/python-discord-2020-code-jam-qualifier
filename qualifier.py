@@ -24,7 +24,23 @@ class ArticleField:
     """The `ArticleField` class for the Advanced Requirements."""
 
     def __init__(self, field_type: typing.Type[typing.Any]):
-        pass
+        self.field_type = field_type
+        self.attribute_name = None
+
+    def __get__(self, instance, owner):
+        val = instance.__dict__[self.attribute_name]
+        return val
+
+    def __set__(self, instance, value):
+        if not issubclass(type(value), self.field_type):
+            raise TypeError(
+                f"expected an instance of type '{self.field_type.__name__}' for attribute '{self.attribute_name}', got '{type(value).__name__}' instead")
+        else:
+            instance.__dict__[self.attribute_name] = value
+
+    def __set_name__(self, owner, name):
+        self.attribute_name = name
+
 
 @total_ordering
 class Article:
@@ -80,19 +96,3 @@ class Article:
         word_list = re.findall(r'\w+', self.content.lower())
         result = Counter(word_list).most_common(n_words)
         return dict(result)
-
-
-if __name__ == '__main__':
-    a = Article(
-        title='a',
-        author='a',
-        publication_date=datetime.datetime.now(),
-        content='a'
-    )
-    b = Article(
-        title='a',
-        author='a',
-        publication_date=datetime.datetime.now(),
-        content='a'
-    )
-    print(a)
