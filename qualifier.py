@@ -17,6 +17,7 @@ import datetime
 import typing
 import re
 from collections import Counter
+from functools import total_ordering
 
 
 class ArticleField:
@@ -25,21 +26,41 @@ class ArticleField:
     def __init__(self, field_type: typing.Type[typing.Any]):
         pass
 
-
+@total_ordering
 class Article:
     """The `Article` class you need to write for the qualifier."""
+    __latest_id = -1
 
     def __init__(self, title: str, author: str, publication_date: datetime.datetime, content: str):
+        Article.__latest_id += 1
+
         self.title = title
         self.author = author
         self.publication_date = publication_date
-        self.content = content
+        self._content = content
+        self.id = Article.__latest_id
+        self.last_edited = None
 
     def __repr__(self):
         return f'<Article title="{self.title}" author=\'{self.author}\' publication_date=\'{self.publication_date.isoformat()}\'>'
 
     def __len__(self):
         return len(self.content)
+
+    def __eq__(self, other):
+        return self.publication_date == other.publication_date
+
+    def __lt__(self, other):
+        return self.publication_date < other.publication_date
+
+    @property
+    def content(self):
+        return self._content
+
+    @content.setter
+    def content(self, value):
+        self._content = value
+        self.last_edited = datetime.datetime.now()
 
     def short_introduction(self, n_characters: int) -> str:
         raw_characters = self.content[:n_characters + 1]
@@ -59,3 +80,19 @@ class Article:
         word_list = re.findall(r'\w+', self.content.lower())
         result = Counter(word_list).most_common(n_words)
         return dict(result)
+
+
+if __name__ == '__main__':
+    a = Article(
+        title='a',
+        author='a',
+        publication_date=datetime.datetime.now(),
+        content='a'
+    )
+    b = Article(
+        title='a',
+        author='a',
+        publication_date=datetime.datetime.now(),
+        content='a'
+    )
+    print(a)
